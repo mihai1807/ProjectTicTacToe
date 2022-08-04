@@ -1,4 +1,5 @@
 import java.util.InputMismatchException;
+import java.util.Random;
 import java.util.Scanner;
 public class Game {
     GameBoard board = new GameBoard();
@@ -6,13 +7,6 @@ public class Game {
 
     //prints the main menu
     public static void mainMenu(){
-        System.out.println("  _______          _______           _______         \n" +
-                " |__   __|        |__   __|         |__   __|        \n" +
-                "    | |   _  ___     | | __ _  ___     | | ___   ___ \n" +
-                "    | |  | |/ __|    | |/ _` |/ __|    | |/ _ \\ / _ \\\n" +
-                "    | |  | | (__     | | (_| | (__     | | (_) |  __/\n" +
-                "    |_|  |_|\\___|    |_|\\__,_|\\___|    |_|\\___/ \\___|");
-        System.out.println();
         System.out.println("(1) Vs another human player");
         System.out.println("(2) Vs Easy AI");
         System.out.println("(3) Vs Unbeatable AI");
@@ -45,42 +39,105 @@ public class Game {
         }
         try {
             Scanner input = new Scanner(System.in);
-            System.out.print("Please enter the line and column: ");
+            System.out.print("Please enter the line and column (1-3 separated by space): ");
             int [] moves = new int[2];
-            String [] playerInput = input.nextLine().split(" ");
-            for (int i=0;i< playerInput.length;i++) {
+            String [] playerInput = input.nextLine().trim().split(" ");
+
+            for (int i=0;i<playerInput.length;i++) {
                 moves[i] = Integer.parseInt(playerInput[i]);
             }
             for (int move: moves) {
                 if (move<1 || move>3) throw new ExceptionWrongInput();
             }
             board.playerMove(moves[0],moves[1],cell);
-            changeRound();
+            if (board.isWin(cell)) {
+                changeRound();
+            } else {
+                board.print();
+                System.out.println(cell+" is the winner, let's play again!");
+                start();
+            }
         } catch (NumberFormatException e) {
-            System.out.println("Wrong Input, has to be digits between 1 and 3!");
+            System.out.println("Wrong Input, has to be digits between 1 and 3 with ONLY 1 space between them!");
             getSecondInput();
         } catch (ExceptionWrongInput e) {
-            System.out.println("Only between 1 and 3");
+            System.out.println("Dude...2 digits, 1-3...come on!");
             getSecondInput();
         } catch (ExceptionOccupiedCell e) {
             System.out.println("Cell is already occupied.Choose something else");
+            getSecondInput();
         }
 
     }
 
+    //changes the round to X's turn or O's turn
     private void changeRound(){
        if (round == Round.X_TURN) {
            round = Round.O_TURN;
        } else round = Round.X_TURN;
     }
 
+    //Main game flow
     public void start(){
         mainMenu();
         board.init();
-        getfirstInput();
         while (true) {
-            getSecondInput();
-            board.print();
+            switch (getfirstInput()) {
+                case(1):
+                    board.print();
+                    System.out.println("Decide which one of you is first, he/she will start with X");
+                    while (true) {
+                        getSecondInput();
+                        board.print();
+                    }
+                case(2):
+                    board.print();
+                    while (true) {
+                        getSecondInput();
+                        board.print();
+                        System.out.println();
+                        try {
+                            easyAiInput();
+                        } catch (StackOverflowError e) {
+                            System.out.println("You Won!!! And destroyed the machine and postponed the uprising!");
+                            System.out.println("Just kidding, thought this would be a nice way to hide a Stack overflow error...");
+                            System.out.println("You still won...i mean yeeeeeey!");
+                            System.exit(1);
+                        }
+                        board.print();
+                    }
+                case(3):
+                    System.out.println("In progress, coming soon...hopefully.");
+                    System.out.println();
+                    start();
+                case(4):
+                    System.exit(1);
+            }
+        }
+    }
+
+    //Easy AI input
+    public void easyAiInput() {
+        Cell cell = Cell.O;
+        if (round.equals(Round.X_TURN)) {
+            cell = Cell.X;
+        }
+        try {
+            Random rand = new Random();
+            int[] easyAiMoves = new int[2];
+            easyAiMoves[0] = rand.nextInt(1, 3);
+            easyAiMoves[1] = rand.nextInt(1, 3);
+            board.checkLineAndCol(easyAiMoves[0], easyAiMoves[1]);
+            board.playerMove(easyAiMoves[0], easyAiMoves[1], cell);
+            if (board.isWin(cell)) {
+                changeRound();
+            } else {
+                board.print();
+                System.out.println(cell+" is the winner, let's play again!");
+                start();
+            }
+        } catch (ExceptionOccupiedCell e) {
+            easyAiInput();
         }
     }
 }
