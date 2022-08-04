@@ -102,7 +102,7 @@ public class Game {
                             System.out.println("You Won!!! And destroyed the machine and postponed the uprising!");
                             System.out.println("Just kidding, thought this would be a nice way to hide a Stack overflow error...");
                             System.out.println("You still won...i mean yeeeeeey!");
-                            System.exit(1);
+                            start();
                         }
                         board.print();
                     }
